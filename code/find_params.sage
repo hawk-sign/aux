@@ -188,8 +188,11 @@ def modelssec(drange, simulate=False, simulatessec=False, tours=1):
     :param tours:           a number of tours to simulate in progressive BKZ
 
 
-    ..note::    we expect a model of the shape a d^.5 + b as a sufficient
-                blocksize is d/2
+    ..note::    we expect a model of the shape a * d^.5 + b, for some b in
+                o(d^.5) as a sufficient blocksize is d/2 + o(d)
+
+    ..note::    for ssec in our actual scheme we use simulation, rather than
+                this fit
     """
     data = []
     for d in drange:
@@ -206,6 +209,7 @@ def modelssec(drange, simulate=False, simulatessec=False, tours=1):
         data += [(d, ssec)]
 
     var('a', 'b', 'x')
+    # concretise b to a constant, arguable
     model(x) = a*sqrt(x) + b # noqa
     sol = find_fit(data, model)
     return sol
@@ -350,6 +354,9 @@ def dimensions_for_free(beta):
 
     :param beta:    an input blocksize
     :returns:       a smaller blocksize via dimensions for free techniques
+
+    ..note::        this function is not automatically applied at the end of
+                    findParams below
     """
     return beta - round(beta * log(4./3.) / log(beta / (2 * pi * e)))
 
