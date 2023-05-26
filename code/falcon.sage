@@ -27,7 +27,7 @@ def falcon_blocksizes(d, falcon=False, k_fac=True):
 
     .. note::       in the Falcon key recovery methodology they apply both
                     k_fac and dimensions for free techniques, as decscribed in
-                    App D
+                    App D of Asiacrypt Hawk, we do not do this
     """
     assert d == 1024 or d == 2048, "please choose a Falcon/Hawk d"
     assert isinstance(falcon, bool), "falcon must be a bool"
@@ -42,7 +42,7 @@ def falcon_blocksizes(d, falcon=False, k_fac=True):
         if n == 512:
             sver = 1.425
         if n == 1024:
-            sver = 1.572
+            sver = 1.571
     dth_root_vol = sqrt(q)
 
     def gh_sqr(d):
