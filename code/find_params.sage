@@ -98,8 +98,8 @@ def approx_SVP_beta(d, sver, simulate=True):
         beta = predict_sign_forge_beta(d, d*log(d)/2, sqrt(d) * sver) # noqa
         return beta
 
-    # this is exactly the Falcon methodology except using rhf and BKZ to
-    # determine first length instead of [EC:MW16] DBKZ corollaries
+    # this is exactly the Falcon methodology since using rhf and BKZ to
+    # determine first length is [EC:MW16] DBKZ Cor 2
     log_sqr_ver_bound = float(2.*log(sver) + log(d))
     success_beta = None
     for beta in IntegerRange(50, d):

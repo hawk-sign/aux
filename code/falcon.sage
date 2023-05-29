@@ -22,6 +22,7 @@ def falcon_blocksizes(d, falcon=False, k_fac=False, approx=False):
                         otherwise Hawk parameters
     :param k_fac:   a multiplicative factor of sqrt(4/3) that is applied to
                         rhs during the key recovery attack in Falcon's analysis
+                        -- we call this ``double'' dimensions for free
     :param approx:  if ``True`` approximate the Gaussian heuristic and simplify
                         some exponents as in Falcon
     :returns:       an estimate ``beta_key`` for key recovery and
@@ -34,6 +35,7 @@ def falcon_blocksizes(d, falcon=False, k_fac=False, approx=False):
     assert d == 1024 or d == 2048, "please choose a Falcon/Hawk d"
     assert isinstance(falcon, bool), "falcon must be a bool"
     assert isinstance(k_fac, bool), "k_fac must be a bool"
+    assert isinstance(approx, bool), "approx must be a bool"
 
     n = int(d/2)
 
