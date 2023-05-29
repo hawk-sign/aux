@@ -12,7 +12,7 @@ def dimensions_for_free(beta):
     return beta - round(beta * log(4./3.) / log(beta / (2 * pi * e)))
 
 
-def falcon_blocksizes(d, falcon=False, k_fac=True):
+def falcon_blocksizes(d, falcon=False, k_fac=False, approx=False):
     """
     A function to allow comparisons to the Falcon style of estimate for the
     required blocksizes for key recovery and strong signature forgery
@@ -21,7 +21,9 @@ def falcon_blocksizes(d, falcon=False, k_fac=True):
     :param falcon:  a bool that if ``True`` considers Falcon parameters, and
                         otherwise Hawk parameters
     :param k_fac:   a multiplicative factor of sqrt(4/3) that is applied to
-                        rhs during the key recovery attack
+                        rhs during the key recovery attack in Falcon's analysis
+    :param approx:  if ``True`` approximate the Gaussian heuristic and simplify
+                        some exponents as in Falcon
     :returns:       an estimate ``beta_key`` for key recovery and
                         ``beta_forge`` for strong signature forgery
 
@@ -66,11 +68,13 @@ def falcon_blocksizes(d, falcon=False, k_fac=True):
         else:
             # projections of something of length 1
             lhs = sqrt(beta_key / d)
-        # Falcon approximates as
-        # rhs = (beta_key/(2*pi*e))**(1 - n/beta_key) * dth_root_vol
-        # more accurate is
-        power = (2*beta_key - d + 1)/(2*(beta_key-1))
-        rhs = gh_sqr(beta_key)**power * dth_root_vol
+        if approx:
+            # Falcon approximates as
+            rhs = (beta_key/(2*pi*e))**(1 - n/beta_key) * dth_root_vol
+        else:
+            # more accurate is
+            power = (2*beta_key - d + 1)/(2*(beta_key-1))
+            rhs = gh_sqr(beta_key)**power * dth_root_vol
         if k_fac:
             rhs *= (4/3)**.5
         if lhs <= rhs:
@@ -82,15 +86,17 @@ def falcon_blocksizes(d, falcon=False, k_fac=True):
         verif_length_sqr = floor((1.1 * sver * sqrt(d))**2)
     else:
         verif_length_sqr = d * sver**2
+    rhs = verif_length_sqr
     for beta_forge in range(50, d):
-        # Falcon approximates as
-        # lhs = (beta_forge/(2*pi*e))**(2*n/beta_forge) * q
-        # more accurate is
-        lhs = gh_sqr(beta_forge)**((d-1)/(beta_forge-1)) * q
-        rhs = verif_length_sqr
+        if approx:
+            # Falcon approximates as
+            loglhs = log(q) + (2*n/beta_forge) * log(beta_forge/(2*pi*e))
+            lhs = e**loglhs
+        else:
+            # more accurate is
+            lhs = gh_sqr(beta_forge)**((d-1)/(beta_forge-1)) * q
         if lhs <= rhs:
             break
-    # print("d, falcon, sqrt{4/3}:", d, falcon, k_fac)
     print("beta_key, beta_forge:", beta_key, beta_forge)
     return beta_key, beta_forge
 
@@ -118,38 +124,32 @@ def falcon_sver(n):
         return 168.388571447
 
 
-# compare hawk and falcon using falcon methodology
-"""
-falcon_blocksizes(1024, falcon=True, k_fac=True)
-
-falcon_blocksizes(2048, falcon=True, k_fac=True)
-
-beta_key, beta_forge = falcon_blocksizes(1024, falcon=True, k_fac=False)
-print(dimensions_for_free(beta_key), dimensions_for_free(beta_forge))
-
-beta_key, beta_forge = falcon_blocksizes(2048, falcon=True, k_fac=False)
-print(dimensions_for_free(beta_key), dimensions_for_free(beta_forge))
-
-falcon_blocksizes(1024, falcon=False, k_fac=True)
-
-falcon_blocksizes(2048, falcon=False, k_fac=True)
-
-beta_key, beta_forge = falcon_blocksizes(1024, falcon=False, k_fac=False)
-print(dimensions_for_free(beta_key), dimensions_for_free(beta_forge))
-
-beta_key, beta_forge = falcon_blocksizes(2048, falcon=False, k_fac=False)
-print(dimensions_for_free(beta_key), dimensions_for_free(beta_forge))
-"""
-
 # Hawk without simulation
 print('hawk 512')
-betaKey, betaForge = falcon_blocksizes(1024, falcon=False, k_fac=False)
+betaKey, betaForge = falcon_blocksizes(1024, falcon=False, k_fac=False,
+                                       approx=False)
 betaKeyd4f = dimensions_for_free(betaKey)
 betaForged4f = dimensions_for_free(betaForge)
-print(betaKey, betaForge, betaKeyd4f, betaForged4f)
+print(betaKey, betaKeyd4f, betaForge, betaForged4f)
 
 print('hawk 1024')
-betaKey, betaForge = falcon_blocksizes(2048, falcon=False, k_fac=False)
+betaKey, betaForge = falcon_blocksizes(2048, falcon=False, k_fac=False,
+                                       approx=False)
 betaKeyd4f = dimensions_for_free(betaKey)
 betaForged4f = dimensions_for_free(betaForge)
-print(betaKey, betaForge, betaKeyd4f, betaForged4f)
+print(betaKey, betaForged4f, betaForge, betaForged4f)
+
+# original Falcon
+print('falcon 512')
+betaKey, betaForge = falcon_blocksizes(1024, falcon=True, k_fac=True,
+                                       approx=True)
+betaKeyd4f = dimensions_for_free(betaKey)
+betaForged4f = dimensions_for_free(betaForge)
+print(betaKey, betaKeyd4f, betaForge, betaForged4f)
+
+print('falcon 1024')
+betaKey, betaForge = falcon_blocksizes(2048, falcon=True, k_fac=True,
+                                       approx=True)
+betaKeyd4f = dimensions_for_free(betaKey)
+betaForged4f = dimensions_for_free(betaForge)
+print(betaKey, betaKeyd4f, betaForge, betaForged4f)

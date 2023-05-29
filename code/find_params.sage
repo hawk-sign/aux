@@ -84,10 +84,11 @@ def approx_SVP_beta(d, sver, simulate=True):
     Estimating the blocksize beta required to find an approximate short
     vector of square length d * sver**2 for ZZ^d
 
-    :param d:       an integer dimension
-    :param sver:    a standard deviation controlling the length of acceptable
-                        signatures (equivalently, the distance from a target)
-    :returns:       the estimated beta for a (strong) signature forgery
+    :param d:           an integer dimension
+    :param sver:        a standard deviation controlling the length of
+                        acceptable signatures (equiv: distance from a target)
+    :param simulate:    if ``True`` use leaky-LWE simulator
+    :returns:           the estimated beta for a (strong) signature forgery
     """
     assert sver > 0, "standard deviation sver must be positive"
 
@@ -97,6 +98,8 @@ def approx_SVP_beta(d, sver, simulate=True):
         beta = predict_sign_forge_beta(d, d*log(d)/2, sqrt(d) * sver) # noqa
         return beta
 
+    # this is exactly the Falcon methodology except using rhf and BKZ to
+    # determine first length instead of [EC:MW16] DBKZ corollaries
     log_sqr_ver_bound = float(2.*log(sver) + log(d))
     success_beta = None
     for beta in IntegerRange(50, d):
